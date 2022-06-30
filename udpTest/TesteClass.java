@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Scanner;
 
 public class TesteClass {
 	public static void main(String[] args) throws IOException {
@@ -21,7 +22,9 @@ public class TesteClass {
 		
 		//lerArquivosPeloCaminho(texto); //ok
 		
-		listagemMusicas2("musicaTeste_1.jpg musicaTeste_2.jpg");
+		//listagemMusicas2("musicaTeste_1.jpg musicaTeste_2.jpg");
+		
+		//teste();
 	}
 	
 	public static void lerArquivos() {
@@ -76,6 +79,12 @@ public class TesteClass {
 		for(String musica : musicasList) {
 			ht.put(port, musica);
 		}		
+	}
+	
+	public static void teste() {
+		Scanner ler = new Scanner(System.in);
+		String opcao = ler.next();	
+		System.out.println(opcao);
 	}
 	
 	
