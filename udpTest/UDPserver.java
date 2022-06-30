@@ -18,6 +18,7 @@ public class UDPserver {
 		// Tabela HASH com os nomes das musicas que cada host possui
 		//Hashtable<Integer, String> listaPorta_Musica = new Hashtable<Integer, String>();
 		Map<String, Integer> lista_Musica_Porta = new HashMap<String, Integer>();
+		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
 					
 		while(true) {
 			
@@ -44,9 +45,9 @@ public class UDPserver {
 			InetAddress iPAddress = recPacket.getAddress();
 			int port = recPacket.getPort();
 			
-			// Adicionando as musicas do host na hasktable com a porta como indice
-			addMusicasToTable(musicasLiStrings, lista_Musica_Porta, port);
-			System.out.println("Hashtable:" + lista_Musica_Porta);
+			// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
+			addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
+			System.out.println("Hashtable:" + lista_MusicaPorta);
 			
 			
 			// Declaração e preenchimento do buffer de envio
@@ -73,10 +74,33 @@ public class UDPserver {
         return strArr;
 	}
 	
-	public static void addMusicasToTable(String[] musicasList, Map<String, Integer> ht, int port) {
+	public static void addMusicasToTable(String[] musicasList, Map<String, List<Integer>> ht, int port) {
+		// Itera sobre a lista de musicas
 		for(String musica : musicasList) {
-			System.out.println("musica:"+musica);
-			ht.put(musica, port);
+			//System.out.println("musica:"+musica);
+			// Verifica se a Musisca (KEY) já existe na hashtable
+			if(verifyMusicAlredyExists(ht, musica)) {
+				addMusicaAlredyExists(ht, musica, port);
+			} else {
+				List<Integer> musicaUnica = new ArrayList<>();
+				musicaUnica.add(port);
+				ht.put(musica, musicaUnica);
+			}		
 		}		
+	}
+	
+	public static boolean verifyMusicAlredyExists(Map<String, List<Integer>> ht, String musica) {
+		if(!ht.isEmpty()) {
+			if (ht.containsKey(musica)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static void addMusicaAlredyExists(Map<String, List<Integer>> ht, String musica, int port) {
+		List<Integer> pList = ht.get(musica);
+		pList.add(port);
+		ht.put(musica, pList);
 	}
 }
