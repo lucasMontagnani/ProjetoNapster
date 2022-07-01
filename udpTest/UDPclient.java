@@ -75,10 +75,9 @@ public class UDPclient {
 		//System.out.println(opcao.equals("1"));
 		
 		if (opcao.equals("1")) {
-			System.out.println("hellooo");
 			join(ip, cSocket);
 		} else if (opcao.equals("2")) {
-			
+			leave(ip, cSocket);
 		} else if (opcao.equals("3")) {
 			
 		} else if (opcao.equals("4")) {
@@ -86,6 +85,41 @@ public class UDPclient {
 		} else {
 			
 		}
+	}
+	
+	public static void leave(InetAddress ip, DatagramSocket cSocket) throws IOException {
+		// -- JOIN : REQUEST ------------------------------------------------------------------------------------------------
+		// Declaração e preenchimento do buffer de envio
+		byte[] sendData = new byte[1024];
+		sendData = "LEAVE".getBytes();
+			
+		// Criação do datagrama com endereço e porta do host remoto 9876
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
+				
+		// Envio do Datagrama ao host remoto
+		cSocket.send(sendPacket);
+		// -- JOIN : REQUEST ------------------------------------------------------------------------------------------------
+		// -- JOIN : RESPONSE ------------------------------------------------------------------------------------------------
+		// Declaração do buffer de recebimento (caso haja)
+		byte[] recBuffer =  new byte[1024];
+		
+		// Ciração do datagrama a ser recebido
+		DatagramPacket recPacket = new DatagramPacket(recBuffer, recBuffer.length);
+		
+		// Recebimento do datagrama do host remoto (método bloquante)
+		cSocket.receive(recPacket); //BLOCKING
+		
+		// Obtenção da informação do datagrama 
+		String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
+		
+		System.out.println("Recebido do servidor: " + informacao);		
+		
+		/*
+		if(informacao.equals("LEAVE_OK")) {
+			cSocket.close();
+		}
+		*/
+		// -- JOIN : RESPONSE ------------------------------------------------------------------------------------------------
 	}
 	
 	public static void join(InetAddress ip, DatagramSocket cSocket) throws IOException {
@@ -147,7 +181,9 @@ public class UDPclient {
 								);
 			 */
 		}
-		// -- JOIN_OK (recebendo do server) ------------------------------------------------------------------------------------------------		
+		// -- JOIN_OK (recebendo do server) ------------------------------------------------------------------------------------------------
+		
+		menuInterativo(ip, cSocket);
 	}
 	
 }

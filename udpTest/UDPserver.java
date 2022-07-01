@@ -17,9 +17,10 @@ public class UDPserver {
 		
 		// Tabela HASH com os nomes das musicas que cada host possui
 		//Hashtable<Integer, String> listaPorta_Musica = new Hashtable<Integer, String>();
-		Map<String, Integer> lista_Musica_Porta = new HashMap<String, Integer>();
+		//Map<String, Integer> lista_Musica_Porta = new HashMap<String, Integer>();
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-					
+		String[] musicasLiStrings = new String[50];
+		
 		while(true) {
 			
 			// Declaração e preenchimento do buffer de recebimento
@@ -31,36 +32,62 @@ public class UDPserver {
 			System.out.println("Esperando alguma mensagem...");
 			
 			// Recebimento do datagrama do host remoto (método bloquante)
-			serverSocket.receive(recPacket); //BLOCKING
+			serverSocket.receive(recPacket); //BLOCKING ----------------------------------------------------------------
 			
 			// Obtenção da informação vinda no datagrama
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
 			
-			// Pegando os dados vindo da string e adicionando numa lista
-			String[] musicasLiStrings = listagemMusicas(informacao);
-			System.out.println("Numero de musicas: " + musicasLiStrings.length);
+			// Validar informacao
+			if(informacao.equals("LEAVE")) {
+				System.out.println("saindo...");
+				// Enderço IP e porta do Cliente (só usando para devolver algo)
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
+				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
+				System.out.println("Hashtable:" + lista_MusicaPorta);
+				
+				// Declaração e preenchimento do buffer de envio
+				byte[] sendBuffer = new byte[1024];
+				sendBuffer = "LEAVE_OK".getBytes();
+				
+				// Criação do datagrama a ser enviado (como resposta ao cliente)
+				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
+				
+				// Envio do datagrama ao cliente
+				serverSocket.send(sendPacket);
+				
+				System.out.println("Mensagem enviada pelo server");
+				
+			} else {
+				// Pegando os dados vindo da string e adicionando numa lista
+				musicasLiStrings = listagemMusicas(informacao);
+				System.out.println("Numero de musicas: " + musicasLiStrings.length);
+				
+				
+				// Enderço IP e porta do Cliente (só usando para devolver algo)
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
+				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
+				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
+				System.out.println("Hashtable:" + lista_MusicaPorta);
+				
+				
+				// Declaração e preenchimento do buffer de envio
+				byte[] sendBuffer = new byte[1024];
+				sendBuffer = "JOIN_OK".getBytes();
+				
+				// Criação do datagrama a ser enviado (como resposta ao cliente)
+				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
+				
+				// Envio do datagrama ao cliente
+				serverSocket.send(sendPacket);
+				
+				System.out.println("Mensagem enviada pelo server");
+			}
 			
 			
-			// Enderço IP e porta do Cliente (só usando para devolver algo)
-			InetAddress iPAddress = recPacket.getAddress();
-			int port = recPacket.getPort();
-			
-			// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
-			addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
-			System.out.println("Hashtable:" + lista_MusicaPorta);
-			
-			
-			// Declaração e preenchimento do buffer de envio
-			byte[] sendBuffer = new byte[1024];
-			sendBuffer = "JOIN_OK".getBytes();
-			
-			// Criação do datagrama a ser enviado (como resposta ao cliente)
-			DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-			
-			// Envio do datagrama ao cliente
-			serverSocket.send(sendPacket);
-			
-			System.out.println("Mensagem enviada pelo server");
 		}
 		
 		//serverSocket.close();
@@ -102,5 +129,20 @@ public class UDPserver {
 		List<Integer> pList = ht.get(musica);
 		pList.add(port);
 		ht.put(musica, pList);
+		
+	}
+	
+	public static void leaveServer(Map<String, List<Integer>> ht, String[] musicasSalvas, int port) {
+		//System.out.println(ht.entrySet());
+		for(String musica : musicasSalvas) {
+			if (ht.get(musica).size() == 1) {
+				ht.remove(musica);
+			} else {
+				List<Integer> pList = ht.get(musica);
+				int index = pList.get(port);
+				pList.remove(index);
+			}
+
+		}
 	}
 }
