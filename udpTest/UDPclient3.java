@@ -12,9 +12,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.List;
 import java.util.Scanner;
 
-import com.google.gson.Gson;
-
-public class UDPclient {
+public class UDPclient3 {
 	public static void main(String[] args) throws Exception {
 		
 		// Endereço IP do host remoto (server)
@@ -109,13 +107,9 @@ public class UDPclient {
 	
 	public static void leave(InetAddress ip, DatagramSocket cSocket) throws IOException {
 		// -- LEAVE : REQUEST ------------------------------------------------------------------------------------------------
-		
-		// Serializar objeto Mensagem para Json
-		String jsonData = serializerMensagemGson("LEAVE", "");	
-				
 		// Declaração e preenchimento do buffer de envio
 		byte[] sendData = new byte[1024];
-		sendData = jsonData.getBytes();
+		sendData = "LEAVE".getBytes();
 			
 		// Criação do datagrama com endereço e porta do host remoto 9876
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
@@ -155,13 +149,10 @@ public class UDPclient {
 		// Método que lê os arquivos do diretorio especificado
 		String dadoString = lerArquivosPeloCaminho(texto);	
 		
-		// Serializar objeto Mensagem para Json
-		String jsonData = serializerMensagemGson("JOIN", dadoString);	
-		
 		// join (enviando para o server)
 		// Declaração e preenchimento do buffer de envio
 		byte[] sendData = new byte[1024];
-		sendData = jsonData.getBytes();
+		sendData = dadoString.getBytes();
 			
 		// Criação do datagrama com endereço e porta do host remoto 9876
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
@@ -211,19 +202,5 @@ public class UDPclient {
 		// -- JOIN_OK (recebendo do server) ------------------------------------------------------------------------------------------------
 		
 		menuInterativo(ip, cSocket);
-	}
-	
-	public static String serializerMensagemGson(String action, String info) {
-		Mensagem payloadMensagem = new Mensagem(action, info);
-		
-		Gson gson = new Gson();
-		String jsonString = gson.toJson(payloadMensagem);
-		return jsonString;
-	}
-	
-	public static Mensagem DesserializerMensagemGson(String jsonString) {
-		Gson gson = new Gson();
-		Mensagem mensagemObject = gson.fromJson(jsonString, Mensagem.class);
-		return mensagemObject;
 	}
 }

@@ -10,6 +10,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.Gson;
+
 public class UDPserver {
 	public static void main(String[] args) throws Exception {
 		// Criar o mecanismo para escutar e atender conexôes pela porta 9876
@@ -37,33 +39,15 @@ public class UDPserver {
 			// Obtenção da informação vinda no datagrama
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
 			
+			// Desserializar Json para objeto Mensagem 
+			Mensagem mensagemInfo = DesserializerMensagemGson(informacao);			
+			
 			// Validar informacao
-			if(informacao.equals("LEAVE")) {
-				System.out.println("saindo...");
-				// Enderço IP e porta do Cliente (só usando para devolver algo)
-				InetAddress iPAddress = recPacket.getAddress();
-				int port = recPacket.getPort();
+			if (mensagemInfo.getMetodo().equals("JOIN")){
 				
-				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
-				System.out.println("Hashtable:" + lista_MusicaPorta);
-				
-				// Declaração e preenchimento do buffer de envio
-				byte[] sendBuffer = new byte[1024];
-				sendBuffer = "LEAVE_OK".getBytes();
-				
-				// Criação do datagrama a ser enviado (como resposta ao cliente)
-				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-				
-				// Envio do datagrama ao cliente
-				serverSocket.send(sendPacket);
-				
-				System.out.println("Mensagem enviada pelo server");
-				
-			} else {
 				// Pegando os dados vindo da string e adicionando numa lista
-				musicasLiStrings = listagemMusicas(informacao);
-				System.out.println("Numero de musicas: " + musicasLiStrings.length);
-				
+				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				System.out.println("Numero de musicas: " + musicasLiStrings.length);		
 				
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
@@ -85,9 +69,29 @@ public class UDPserver {
 				serverSocket.send(sendPacket);
 				
 				System.out.println("Mensagem enviada pelo server");
-			}
-			
-			
+				
+			} else if (mensagemInfo.getMetodo().equals("LEAVE")){
+				
+				System.out.println("saindo...");
+				// Enderço IP e porta do Cliente (só usando para devolver algo)
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
+				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
+				System.out.println("Hashtable:" + lista_MusicaPorta);
+				
+				// Declaração e preenchimento do buffer de envio
+				byte[] sendBuffer = new byte[1024];
+				sendBuffer = "LEAVE_OK".getBytes();
+				
+				// Criação do datagrama a ser enviado (como resposta ao cliente)
+				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
+				
+				// Envio do datagrama ao cliente
+				serverSocket.send(sendPacket);
+				
+				System.out.println("Mensagem enviada pelo server");
+			}			
 		}
 		
 		//serverSocket.close();
@@ -144,5 +148,29 @@ public class UDPserver {
 			}
 
 		}
+	}
+	
+	public static List<Integer> searchMusic(Map<String, List<Integer>> ht, String musica) {
+		List<Integer> hostList = new ArrayList<Integer>();
+		if (verifyMusicAlredyExists(ht, musica)) {
+			hostList =  ht.get(musica);
+			return hostList;
+		} else {
+			return hostList;
+		}
+	}
+	
+	public static String serializerMensagemGson(String action, String info) {
+		Mensagem payloadMensagem = new Mensagem(action, info);
+		
+		Gson gson = new Gson();
+		String jsonString = gson.toJson(payloadMensagem);
+		return jsonString;
+	}
+	
+	public static Mensagem DesserializerMensagemGson(String jsonString) {
+		Gson gson = new Gson();
+		Mensagem mensagemObject = gson.fromJson(jsonString, Mensagem.class);
+		return mensagemObject;
 	}
 }
