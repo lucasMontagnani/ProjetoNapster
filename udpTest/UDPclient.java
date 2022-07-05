@@ -85,7 +85,9 @@ public class UDPclient {
 			
 		} else if (opcao.equals("4")) {
 			leave(ip, cSocket);
-		} else {
+		} else if (opcao.equals("5")) {
+			update(ip, cSocket, "musicaTeste_3.jpg");
+		}else {
 			
 		}
 	}
@@ -231,6 +233,40 @@ public class UDPclient {
 		// -- JOIN_OK (recebendo do server) ------------------------------------------------------------------------------------------------
 		
 		menuInterativo(ip, cSocket);
+	}
+	
+	public static void update(InetAddress ip, DatagramSocket cSocket, String musicaBaixada) throws IOException {
+		// -- UPDATE - REQUEST ------------------------------------------------------------------------------------------------				
+		// Serializar objeto Mensagem para Json
+		String jsonData = serializerMensagemGson("UPDATE", musicaBaixada);	
+		
+		// join (enviando para o server)
+		// Declaração e preenchimento do buffer de envio
+		byte[] sendData = new byte[1024];
+		sendData = jsonData.getBytes();
+			
+		// Criação do datagrama com endereço e porta do host remoto 9876
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
+				
+		// Envio do Datagrama ao host remoto
+		cSocket.send(sendPacket);
+		
+		// -- UPDATE - REQUEST ------------------------------------------------------------------------------------------------	
+		// -- UPDATE : RESPONSE ------------------------------------------------------------------------------------------------
+		// Declaração do buffer de recebimento (caso haja)
+		byte[] recBuffer =  new byte[1024];
+		
+		// Ciração do datagrama a ser recebido
+		DatagramPacket recPacket = new DatagramPacket(recBuffer, recBuffer.length);
+		
+		// Recebimento do datagrama do host remoto (método bloquante)
+		cSocket.receive(recPacket); //BLOCKING
+		
+		// Obtenção da informação do datagrama 
+		String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());		
+		
+		System.out.println(informacao);		
+		// -- UPDATE : RESPONSE ------------------------------------------------------------------------------------------------
 	}
 	
 	public static String serializerMensagemGson(String action, String info) {

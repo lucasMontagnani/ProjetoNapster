@@ -112,6 +112,29 @@ public class UDPserver {
 				
 				// Envio do datagrama ao cliente
 				serverSocket.send(sendPacket);
+			} else if (mensagemInfo.getMetodo().equals("UPDATE")){
+				
+				// Pegando os dados vindo da string e adicionando numa lista
+				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				System.out.println("Numero de musicas: " + musicasLiStrings.length);	
+				
+				// Enderço IP e porta do Cliente (só usando para devolver algo)
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
+				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
+				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
+				System.out.println("Hashtable:" + lista_MusicaPorta);
+				
+				// Declaração e preenchimento do buffer de envio
+				byte[] sendBuffer = new byte[1024];
+				sendBuffer = "UPDATE_OK".getBytes();
+				
+				// Criação do datagrama a ser enviado (como resposta ao cliente)
+				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
+				
+				// Envio do datagrama ao cliente
+				serverSocket.send(sendPacket);
 			}
 		}
 		
