@@ -91,7 +91,28 @@ public class UDPserver {
 				serverSocket.send(sendPacket);
 				
 				System.out.println("Mensagem enviada pelo server");
-			}			
+				
+			} else if (mensagemInfo.getMetodo().equals("SEARCH")){
+				
+				// Procura e adiciona a uma lista todos os peers que possuem a musica
+				List<Integer> listaPeers = searchMusic(lista_MusicaPorta, mensagemInfo.getRequestResponsePayload());
+				System.out.println(listaPeers);
+				String peerLiString = intListToString(listaPeers);
+				
+				// Enderço IP e porta do Cliente (só usando para devolver algo)
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
+				// Declaração e preenchimento do buffer de envio
+				byte[] sendBuffer = new byte[1024];
+				sendBuffer = peerLiString.getBytes();
+				
+				// Criação do datagrama a ser enviado (como resposta ao cliente)
+				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
+				
+				// Envio do datagrama ao cliente
+				serverSocket.send(sendPacket);
+			}
 		}
 		
 		//serverSocket.close();
@@ -172,5 +193,17 @@ public class UDPserver {
 		Gson gson = new Gson();
 		Mensagem mensagemObject = gson.fromJson(jsonString, Mensagem.class);
 		return mensagemObject;
+	}
+	
+	public static String intListToString(List<Integer> peers) {
+		String stringPeers = "";
+		for(int peer : peers) {
+			if (stringPeers.trim().isEmpty()) {
+				stringPeers = String.valueOf(peer);
+			} else {
+				stringPeers = stringPeers + " " + String.valueOf(peer);
+			}
+		}
+		return stringPeers;
 	}
 }

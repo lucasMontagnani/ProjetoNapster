@@ -95,16 +95,36 @@ public class UDPclient {
 		// Método que lê as informações do teclado
 		String texto = lerDoTeclado();
 		
+		// Serializar objeto Mensagem para Json
+		String jsonData = serializerMensagemGson("SEARCH", texto);	
+		
 		// Declaração e preenchimento do buffer de envio
 		byte[] sendData = new byte[1024];
-		sendData = texto.getBytes();
+		sendData = jsonData.getBytes();
 			
 		// Criação do datagrama com endereço e porta do host remoto 9876
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ip, 9876);
 				
 		// Envio do Datagrama ao host remoto
 		cSocket.send(sendPacket);		
+		
 		// -- SEARCH : REQUEST ------------------------------------------------------------------------------------------------
+		// -- SEARCH : RESPONSE ------------------------------------------------------------------------------------------------
+		
+		// Declaração do buffer de recebimento (caso haja)
+		byte[] recBuffer =  new byte[1024];
+		
+		// Ciração do datagrama a ser recebido
+		DatagramPacket recPacket = new DatagramPacket(recBuffer, recBuffer.length);
+		
+		// Recebimento do datagrama do host remoto (método bloquante)
+		cSocket.receive(recPacket); //BLOCKING
+		
+		// Obtenção da informação do datagrama 
+		String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());		
+		
+		System.out.println(informacao);
+		// -- SEARCH : RESPONSE ------------------------------------------------------------------------------------------------
 	}
 	
 	public static void leave(InetAddress ip, DatagramSocket cSocket) throws IOException {
@@ -225,5 +245,12 @@ public class UDPclient {
 		Gson gson = new Gson();
 		Mensagem mensagemObject = gson.fromJson(jsonString, Mensagem.class);
 		return mensagemObject;
+	}
+	
+	public static String[] listagemPeers(String peersString) {
+        String[] strArr = peersString.split("\\s+");//Splitting using whitespace
+        System.out.println("The String is: " + peersString);
+        //System.out.print("The String Array after splitting is: " + Array.toString(strArr));
+        return strArr;
 	}
 }
