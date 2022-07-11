@@ -27,6 +27,7 @@ public class TesteClass {
 		//teste();
 	}
 	
+	//C:\\Users\\lucas\\Downloads\\MusicasTesteTeste
 	public static void lerArquivos() {
 		File file = new File("C:\\Users\\lucas\\Downloads\\MusicasTeste");
 		String[] listFiles = file.list();

@@ -1,27 +1,26 @@
 package udpTest;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
 
-public class UDPserver {
-	public static void main(String[] args) throws Exception {
+public class ServerConcorrente {
+	
+	public static void main(String[] args) throws IOException {
 		// Criar o mecanismo para escutar e atender conexôes pela porta 9876
 		DatagramSocket serverSocket = new DatagramSocket(9876);
 		
 		// Tabela HASH com os nomes das musicas que cada host possui
-		//Hashtable<Integer, String> listaPorta_Musica = new Hashtable<Integer, String>();
-		//Map<String, Integer> lista_Musica_Porta = new HashMap<String, Integer>();
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-		String[] musicasLiStrings = new String[50];
 		
 		while(true) {
 			
@@ -36,6 +35,29 @@ public class UDPserver {
 			// Recebimento do datagrama do host remoto (método bloquante)
 			serverSocket.receive(recPacket); //BLOCKING ----------------------------------------------------------------
 			
+			ThreadAtendimento thread = new ThreadAtendimento(serverSocket, recPacket, lista_MusicaPorta);
+			thread.start();
+		}
+				
+	}
+		
+	public static class ThreadAtendimento extends Thread{
+		
+		private DatagramSocket serverSocket;
+		private DatagramPacket recPacket;
+		public Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
+		public String[] musicasLiStrings = new String[50];
+		
+		public ThreadAtendimento(DatagramSocket serverSocket, DatagramPacket recPacket,
+				Map<String, List<Integer>> lista_MusicaPorta) {
+			this.serverSocket = serverSocket;
+			this.recPacket = recPacket;
+			this.lista_MusicaPorta = lista_MusicaPorta;
+		}
+
+
+		@Override
+		public void run() {
 			// Obtenção da informação vinda no datagrama
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
 			
@@ -47,7 +69,9 @@ public class UDPserver {
 				
 				// Pegando os dados vindo da string e adicionando numa lista
 				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
-				System.out.println("Numero de musicas: " + musicasLiStrings.length);		
+				System.out.println("Numero de musicas: " + musicasLiStrings.length);
+				
+				System.out.println(musicasLiStrings[0]);
 				
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
@@ -57,6 +81,7 @@ public class UDPserver {
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
 				
+				System.out.println(musicasLiStrings[0]);
 				
 				// Declaração e preenchimento do buffer de envio
 				byte[] sendBuffer = new byte[1024];
@@ -66,7 +91,12 @@ public class UDPserver {
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
 				
 				// Envio do datagrama ao cliente
-				serverSocket.send(sendPacket);
+				try {
+					serverSocket.send(sendPacket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
 				System.out.println("Mensagem enviada pelo server");
 				
@@ -77,11 +107,7 @@ public class UDPserver {
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
 				
-
-				for (String string : musicasLiStrings) {
-					System.out.println(string);
-				}
-
+				System.out.println(musicasLiStrings[0]);
 				
 				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
@@ -94,7 +120,12 @@ public class UDPserver {
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
 				
 				// Envio do datagrama ao cliente
-				serverSocket.send(sendPacket);
+				try {
+					serverSocket.send(sendPacket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
 				System.out.println("Mensagem enviada pelo server");
 				
@@ -117,7 +148,12 @@ public class UDPserver {
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
 				
 				// Envio do datagrama ao cliente
-				serverSocket.send(sendPacket);
+				try {
+					serverSocket.send(sendPacket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} else if (mensagemInfo.getMetodo().equals("UPDATE")){
 				
 				// Pegando os dados vindo da string e adicionando numa lista
@@ -140,13 +176,17 @@ public class UDPserver {
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
 				
 				// Envio do datagrama ao cliente
-				serverSocket.send(sendPacket);
+				try {
+					serverSocket.send(sendPacket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+			
 		}
-		
-		//serverSocket.close();
-		
 	}
+	
 	
 	public static String[] listagemMusicas(String musicasString) {
         String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
@@ -189,12 +229,11 @@ public class UDPserver {
 	public static void leaveServer(Map<String, List<Integer>> ht, String[] musicasSalvas, int port) {
 		//System.out.println(ht.entrySet());
 		for(String musica : musicasSalvas) {
-			//Verifica se aquela musica tem mais de 1 peer
 			if (ht.get(musica).size() == 1) {
 				ht.remove(musica);
 			} else {
-				//Recupera lista de peers que possuem a musica
 				List<Integer> pList = ht.get(musica);
+				//System.out.println(pList);
 				int index = pList.indexOf(port);
 				pList.remove(index);
 			}
@@ -237,4 +276,5 @@ public class UDPserver {
 		}
 		return stringPeers;
 	}
+	
 }
