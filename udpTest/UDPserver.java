@@ -21,7 +21,7 @@ public class UDPserver {
 		//Hashtable<Integer, String> listaPorta_Musica = new Hashtable<Integer, String>();
 		//Map<String, Integer> lista_Musica_Porta = new HashMap<String, Integer>();
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-		String[] musicasLiStrings = new String[50];
+		//String[] musicasLiStrings = new String[50];
 		
 		while(true) {
 			
@@ -46,7 +46,7 @@ public class UDPserver {
 			if (mensagemInfo.getMetodo().equals("JOIN")){
 				
 				// Pegando os dados vindo da string e adicionando numa lista
-				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
 				System.out.println("Numero de musicas: " + musicasLiStrings.length);		
 				
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
@@ -78,12 +78,10 @@ public class UDPserver {
 				int port = recPacket.getPort();
 				
 
-				for (String string : musicasLiStrings) {
-					System.out.println(string);
-				}
-
+				System.out.println(mensagemInfo.getRequestResponsePayload());
+				String[] musicasStringList = listagemMusicas(mensagemInfo.getRequestResponsePayload());
 				
-				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
+				leaveServer(lista_MusicaPorta, musicasStringList, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
 				
 				// Declaração e preenchimento do buffer de envio
@@ -121,7 +119,7 @@ public class UDPserver {
 			} else if (mensagemInfo.getMetodo().equals("UPDATE")){
 				
 				// Pegando os dados vindo da string e adicionando numa lista
-				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
 				System.out.println("Numero de musicas: " + musicasLiStrings.length);	
 				
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
