@@ -46,7 +46,6 @@ public class ServerConcorrente {
 		private DatagramSocket serverSocket;
 		private DatagramPacket recPacket;
 		public Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-		public String[] musicasLiStrings = new String[50];
 		
 		public ThreadAtendimento(DatagramSocket serverSocket, DatagramPacket recPacket,
 				Map<String, List<Integer>> lista_MusicaPorta) {
@@ -60,36 +59,33 @@ public class ServerConcorrente {
 		public void run() {
 			// Obtenção da informação vinda no datagrama
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
-			
+
 			// Desserializar Json para objeto Mensagem 
 			Mensagem mensagemInfo = DesserializerMensagemGson(informacao);			
-			
+
 			// Validar informacao
 			if (mensagemInfo.getMetodo().equals("JOIN")){
-				
+
 				// Pegando os dados vindo da string e adicionando numa lista
-				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
-				System.out.println("Numero de musicas: " + musicasLiStrings.length);
-				
-				System.out.println(musicasLiStrings[0]);
-				
+				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				System.out.println("Numero de musicas: " + musicasLiStrings.length);		
+
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
-				
+
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
-				
-				System.out.println(musicasLiStrings[0]);
-				
+
+
 				// Declaração e preenchimento do buffer de envio
 				byte[] sendBuffer = new byte[1024];
 				sendBuffer = "JOIN_OK".getBytes();
-				
+
 				// Criação do datagrama a ser enviado (como resposta ao cliente)
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-				
+
 				// Envio do datagrama ao cliente
 				try {
 					serverSocket.send(sendPacket);
@@ -97,28 +93,30 @@ public class ServerConcorrente {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				System.out.println("Mensagem enviada pelo server");
-				
+
 			} else if (mensagemInfo.getMetodo().equals("LEAVE")){
-				
+
 				System.out.println("saindo...");
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
-				
-				System.out.println(musicasLiStrings[0]);
-				
-				leaveServer(lista_MusicaPorta, musicasLiStrings, port);
+
+
+				System.out.println(mensagemInfo.getRequestResponsePayload());
+				String[] musicasStringList = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+
+				leaveServer(lista_MusicaPorta, musicasStringList, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
-				
+
 				// Declaração e preenchimento do buffer de envio
 				byte[] sendBuffer = new byte[1024];
 				sendBuffer = "LEAVE_OK".getBytes();
-				
+
 				// Criação do datagrama a ser enviado (como resposta ao cliente)
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-				
+
 				// Envio do datagrama ao cliente
 				try {
 					serverSocket.send(sendPacket);
@@ -126,27 +124,27 @@ public class ServerConcorrente {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				System.out.println("Mensagem enviada pelo server");
-				
+
 			} else if (mensagemInfo.getMetodo().equals("SEARCH")){
-				
+
 				// Procura e adiciona a uma lista todos os peers que possuem a musica
 				List<Integer> listaPeers = searchMusic(lista_MusicaPorta, mensagemInfo.getRequestResponsePayload());
 				System.out.println(listaPeers);
 				String peerLiString = intListToString(listaPeers);
-				
+
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
-				
+
 				// Declaração e preenchimento do buffer de envio
 				byte[] sendBuffer = new byte[1024];
 				sendBuffer = peerLiString.getBytes();
-				
+
 				// Criação do datagrama a ser enviado (como resposta ao cliente)
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-				
+
 				// Envio do datagrama ao cliente
 				try {
 					serverSocket.send(sendPacket);
@@ -155,26 +153,26 @@ public class ServerConcorrente {
 					e.printStackTrace();
 				}
 			} else if (mensagemInfo.getMetodo().equals("UPDATE")){
-				
+
 				// Pegando os dados vindo da string e adicionando numa lista
-				musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
 				System.out.println("Numero de musicas: " + musicasLiStrings.length);	
-				
+
 				// Enderço IP e porta do Cliente (só usando para devolver algo)
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
-				
+
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
-				
+
 				// Declaração e preenchimento do buffer de envio
 				byte[] sendBuffer = new byte[1024];
 				sendBuffer = "UPDATE_OK".getBytes();
-				
+
 				// Criação do datagrama a ser enviado (como resposta ao cliente)
 				DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, iPAddress, port);
-				
+
 				// Envio do datagrama ao cliente
 				try {
 					serverSocket.send(sendPacket);
@@ -183,7 +181,7 @@ public class ServerConcorrente {
 					e.printStackTrace();
 				}
 			}
-			
+
 		}
 	}
 	
