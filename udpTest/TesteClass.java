@@ -88,5 +88,19 @@ public class TesteClass {
 		System.out.println(opcao);
 	}
 	
+	/*
+	System.out.println(clienSocket.getLocalAddress() + " " 
+						+ clienSocket.getInetAddress() +  " "  
+						+clienSocket.getLocalSocketAddress() + " "
+						+clienSocket.getLocalAddress().getHostAddress() + " "
+						+ InetAddress.getLocalHost() +  " "  
+						+ InetAddress.getLoopbackAddress() +  " "  
+						+ InetAddress.getLoopbackAddress().getHostAddress() +  " "  
+						+ InetAddress.getLocalHost().getHostAddress() + " "
+						+ clienSocket.getLocalAddress().getCanonicalHostName() + " " 
+						+ clienSocket.getLocalAddress().getAddress().toString() + " " 
+						+ clienSocket.getLocalAddress().getHostName() + " " 
+						);
+	 */
 	
 }
