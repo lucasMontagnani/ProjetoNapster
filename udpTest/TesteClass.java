@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TesteClass {
 	public static void main(String[] args) throws IOException {
@@ -25,6 +27,8 @@ public class TesteClass {
 		//listagemMusicas2("musicaTeste_1.jpg musicaTeste_2.jpg");
 		
 		//teste();
+		
+		aliveTest();
 	}
 	
 	//C:\\Users\\lucas\\Downloads\\MusicasTesteTeste
@@ -102,5 +106,22 @@ public class TesteClass {
 						+ clienSocket.getLocalAddress().getHostName() + " " 
 						);
 	 */
+	
+	public static void aliveTest() {
+		long segundos = (1000 * 5);
+		
+		Timer timer = new Timer();
+		
+		TimerTask task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				System.out.println("Testeee");
+			}
+		};
+		
+		timer.schedule(task, 0, segundos);
+	}
 	
 }

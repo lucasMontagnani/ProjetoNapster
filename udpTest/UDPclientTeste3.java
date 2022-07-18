@@ -7,18 +7,14 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.FileAlreadyExistsException;
-import java.util.List;
-import java.util.Scanner;
 
 import com.google.gson.Gson;
 
-public class UDPclientTeste2 {
-	public String MusicasListString;
+public class UDPclientTeste3 {
+	//public String MusicasListString;
+	public static boolean varTest = true;
 	
 	public static void main(String[] args) throws Exception {
-		
 		// Endereço IP do host remoto (server)
 		InetAddress iPAddress = InetAddress.getByName("127.0.0.1");
 		
@@ -26,29 +22,53 @@ public class UDPclientTeste2 {
 		// clientSocket terá uma porta designada pelo SO entre 1024 e 65535
 		DatagramSocket clienSocket = new DatagramSocket();
 		
-
+		String MusicasListString = "";
 		
-		UDPclientTeste2 uClient = new UDPclientTeste2();
+		new ThreadMenu(iPAddress, clienSocket, MusicasListString).start();
 		
-		uClient.menuInterativo(iPAddress, clienSocket);
-		
-		while(true) {
+		while(varTest) {
 			// -- RESPONSE ------------------------------------------------------------------------------------------------
-			
+
 			// Declaração do buffer de recebimento (caso haja)
 			byte[] recBuffer =  new byte[1024];
-			
+
 			// Ciração do datagrama a ser recebido
 			DatagramPacket recPacket = new DatagramPacket(recBuffer, recBuffer.length);
-			
+
 			// Recebimento do datagrama do host remoto (método bloquante)
 			clienSocket.receive(recPacket); //BLOCKING
 			
-			ThreadRecPacket threadPacket = new ThreadRecPacket(clienSocket, recPacket, iPAddress);
-			threadPacket.start();
-			
+			//ThreadRecPacket threadPacket = new ThreadRecPacket(clienSocket, recPacket, iPAddress);
+			//threadPacket.start();
+
+			// Obtenção da informação do datagrama 
+			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());		
+
+			System.out.println(informacao);
+
+			if(informacao.equals("JOIN_OK")) {
+				System.out.println("Sou peer " + InetAddress.getLoopbackAddress().getHostAddress() + ":" + clienSocket.getLocalPort() +" com arquivos MusicasListString");
+			} else if(informacao.equals("LEAVE_OK")) {
+				System.out.println("LEAVE_OK recebido");
+				varTest = false;
+				clienSocket.close();
+			} else if(informacao.equals("UPDATE_OK")) {
+				System.out.println("UPDATE_OK recebido");
+			} else if(informacao.equals("ALIVE")) {
+				System.out.println("ALIVE_OK recebido");
+				try {
+					alive(iPAddress, clienSocket);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println("SEARCH_OK recebido");
+				System.out.println("peers com arquivo solicitado:[IP:porta de cada peer da lista]");
+			}
+
 			// --RESPONSE ------------------------------------------------------------------------------------------------
-			
+			//Trocar por wait e notify
+			//Thread.sleep(1000);
 		}
 			
 		
@@ -79,6 +99,7 @@ public class UDPclientTeste2 {
 				System.out.println("Sou peer " + InetAddress.getLoopbackAddress().getHostAddress() + ":" + clienSocket.getLocalPort() +" com arquivos MusicasListString");
 			} else if(informacao.equals("LEAVE_OK")) {
 				System.out.println("LEAVE_OK recebido");
+				varTest = false;
 				clienSocket.close();
 			} else if(informacao.equals("UPDATE_OK")) {
 				System.out.println("UPDATE_OK recebido");
@@ -87,7 +108,6 @@ public class UDPclientTeste2 {
 				try {
 					alive(ipServerAddress, clienSocket);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else {
@@ -97,7 +117,29 @@ public class UDPclientTeste2 {
 		}
 	}
 	
-	public void menuInterativo(InetAddress ip, DatagramSocket cSocket) throws IOException {
+	public static class ThreadMenu extends Thread{
+		private InetAddress ip;
+		private DatagramSocket cSocket;
+		private String MusicasListString;
+				
+		public ThreadMenu(InetAddress ip, DatagramSocket cSocket, String musicasListString) {
+			super();
+			this.ip = ip;
+			this.cSocket = cSocket;
+			MusicasListString = musicasListString;
+		}
+
+		@Override
+		public void run() {
+			try {
+				menuInterativo(ip, cSocket, MusicasListString);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static void menuInterativo(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws IOException {
 		
 		System.out.println("Selecione uma das opções(número) abaixo:");
 		System.out.println("1 - JOIN");
@@ -114,21 +156,21 @@ public class UDPclientTeste2 {
 		//System.out.println(opcao.equals("1"));
 		
 		if (opcao.equals("1")) {
-			this.join(ip, cSocket);
+			join(ip, cSocket, MusicasListString);
 		} else if (opcao.equals("2")) {
-			this.search(ip, cSocket);
+			search(ip, cSocket, MusicasListString);
 		} else if (opcao.equals("3")) {
 			
 		} else if (opcao.equals("4")) {
-			leave(ip, cSocket);
+			leave(ip, cSocket, MusicasListString);
 		} else if (opcao.equals("5")) {
-			this.update(ip, cSocket, "musicaTeste_3.jpg");
+			update(ip, cSocket, "musicaTeste_3.jpg", MusicasListString);
 		}else {
 			
 		}
 	}
 	
-	public void search(InetAddress ip, DatagramSocket cSocket) throws IOException {
+	public static void search(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws IOException {
 		// -- SEARCH : REQUEST ------------------------------------------------------------------------------------------------
 		// Método que lê as informações do teclado
 		String texto = lerDoTeclado();
@@ -169,13 +211,14 @@ public class UDPclientTeste2 {
 		 */
 		
 		//menuInterativo(ip, cSocket);
+		new ThreadMenu(ip, cSocket, MusicasListString).start();
 	}
 	
-	public void leave(InetAddress ip, DatagramSocket cSocket) throws IOException {
+	public static void leave(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws IOException {
 		// -- LEAVE : REQUEST ------------------------------------------------------------------------------------------------
 		
 		// Serializar objeto Mensagem para Json
-		String jsonData = serializerMensagemGson("LEAVE", this.MusicasListString);	
+		String jsonData = serializerMensagemGson("LEAVE", MusicasListString);	
 				
 		// Declaração e preenchimento do buffer de envio
 		byte[] sendData = new byte[1024];
@@ -212,7 +255,7 @@ public class UDPclientTeste2 {
 		*/
 	}
 	
-	public void join(InetAddress ip, DatagramSocket cSocket) throws IOException {
+	public static void join(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws IOException {
 		// -- JOIN ------------------------------------------------------------------------------------------------
 		// join (coletanto informações da pasta e musicas nela contidas)
 		// Método que lê as informações do teclado
@@ -220,7 +263,7 @@ public class UDPclientTeste2 {
 			
 		// Método que lê os arquivos do diretorio especificado
 		//String dadoString = lerArquivosPeloCaminho(texto);
-		this.MusicasListString = lerArquivosPeloCaminho(texto);
+		MusicasListString = lerArquivosPeloCaminho(texto);
 		
 		// Serializar objeto Mensagem para Json
 		String jsonData = serializerMensagemGson("JOIN", MusicasListString);	
@@ -267,14 +310,16 @@ public class UDPclientTeste2 {
 		
 		//Chama menu de opções
 		//menuInterativo(ip, cSocket);
+		
+		new ThreadMenu(ip, cSocket, MusicasListString).start();
 	}
 	
-	public void update(InetAddress ip, DatagramSocket cSocket, String musicaBaixada) throws IOException {
+	public static void update(InetAddress ip, DatagramSocket cSocket, String musicaBaixada, String MusicasListString) throws IOException {
 		// -- UPDATE - REQUEST ------------------------------------------------------------------------------------------------		
 		//Atualizar atributo MusicaListString com a nova musica
-		System.out.println(this.MusicasListString);
-		this.MusicasListString = this.MusicasListString + " "+musicaBaixada;
-		System.out.println(this.MusicasListString);
+		System.out.println(MusicasListString);
+		MusicasListString = MusicasListString + " "+musicaBaixada;
+		System.out.println(MusicasListString);
 		
 		// Serializar objeto Mensagem para Json
 		String jsonData = serializerMensagemGson("UPDATE", musicaBaixada);	
