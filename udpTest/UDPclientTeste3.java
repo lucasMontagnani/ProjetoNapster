@@ -362,7 +362,7 @@ public class UDPclientTeste3 {
 		// -- ALIVE : RESPONSE ------------------------------------------------------------------------------------------------
 		
 		// Serializar objeto Mensagem para Json
-		String jsonData = serializerMensagemGson("ALIVE", "ALIVE_OK");	
+		String jsonData = serializerMensagemGson("ALIVE_OK", "ALIVE_OK");	
 		
 		// Declaração e preenchimento do buffer de envio
 		byte[] sendData = new byte[1024];

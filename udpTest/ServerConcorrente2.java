@@ -17,7 +17,7 @@ import java.util.TimerTask;
 
 import com.google.gson.Gson;
 
-public class ServerConcorrente {
+public class ServerConcorrente2 {
 	
 	public static void main(String[] args) throws IOException {
 		// Criar o mecanismo para escutar e atender conexôes pela porta 9876
@@ -26,12 +26,13 @@ public class ServerConcorrente {
 		// Tabela HASH com os nomes das musicas que cada host possui
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
 		
-		List<Integer> hostList = new ArrayList<Integer>();
+		Map<Integer, Integer> hostList = new HashMap<Integer, Integer>();
+		//List<Integer> hostList = new ArrayList<Integer>();
 		InetAddress ipClient = InetAddress.getLocalHost();
 		
 		//List<List<Integer>> testAliveList = new ArrayList<List<Integer>>(); 
 		
-		aliveTest(hostList, ipClient, serverSocket);
+		aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
 		
 		while(true) {
 			
@@ -57,13 +58,11 @@ public class ServerConcorrente {
 		private DatagramSocket serverSocket;
 		private DatagramPacket recPacket;
 		public Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-		public List<Integer> hostlist = new ArrayList<Integer>();
+		public Map<Integer, Integer> hostlist = new HashMap<Integer, Integer>();
 		
-		
-
-
 		public ThreadAtendimento(DatagramSocket serverSocket, DatagramPacket recPacket,
-				Map<String, List<Integer>> lista_MusicaPorta, List<Integer> hostlist) {
+				Map<String, List<Integer>> lista_MusicaPorta, Map<Integer, Integer> hostlist) {
+			super();
 			this.serverSocket = serverSocket;
 			this.recPacket = recPacket;
 			this.lista_MusicaPorta = lista_MusicaPorta;
@@ -90,7 +89,7 @@ public class ServerConcorrente {
 				int port = recPacket.getPort();
 				
 				//Adicionando porta a lista de portas ALIVE
-				hostlist.add(port);
+				hostlist.put(port, 0);
 
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
@@ -129,8 +128,7 @@ public class ServerConcorrente {
 				
 				//Removendo peer do server
 				leaveServer(lista_MusicaPorta, musicasStringList, port);
-				int index = hostlist.indexOf(port);
-				hostlist.remove(index);
+				hostlist.remove(port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
 				System.out.println("Portas ALIVE: " + hostlist);
 
@@ -206,8 +204,15 @@ public class ServerConcorrente {
 				}
 			} else if (mensagemInfo.getMetodo().equals("ALIVE_OK")){ 
 				//identificar o peer que enviou o alive_ok
+				InetAddress iPAddress = recPacket.getAddress();
+				int port = recPacket.getPort();
+				
 				//marcar na estrutura que ele esta vivo
+				hostlist.put(port, 1);
+				System.out.println(hostlist);
+				System.out.println("bateu");
 				//notificar o alive test
+				
 			}
 
 		}
@@ -304,7 +309,7 @@ public class ServerConcorrente {
 	}
 	
 	
-	public static void aliveTest(List<Integer> hostList, InetAddress ipClient, DatagramSocket serverSocket) throws UnknownHostException {
+	public static void aliveTest(Map<Integer, Integer> hostList, InetAddress ipClient, DatagramSocket serverSocket, Map<String, List<Integer>> ht) throws UnknownHostException {
 		long segundos = (1000 * 10);
 
 		Timer timer = new Timer();
@@ -312,13 +317,13 @@ public class ServerConcorrente {
 
 			@Override
 			public void run() {
-				for (Integer peer : hostList) {
+				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
 					// Declaração e preenchimento do buffer de envio
 					byte[] sendBuffer = new byte[1024];
 					sendBuffer = "ALIVE".getBytes();
 
 					// Criação do datagrama a ser enviado (como resposta ao cliente)
-					DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, ipClient, peer);
+					DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, ipClient, peer.getKey());
 
 					// Envio do datagrama ao cliente
 					try {
@@ -329,9 +334,26 @@ public class ServerConcorrente {
 					}
 					
 					// wait/esperar pra ver se o peer ta vivo (pode ser um sleep)
-					// se o peer estiver marcado como ok: num faz nada, se não retira ele
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					
+					System.out.println(hostList);
+				}
+				
+				// se o peer estiver marcado como ok: num faz nada, se não retira ele
+				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
+					if (peer.getValue() == 0) {
+						leaveServer(ht, null, 0);
+					}
 				}
 			}
+			
+			
 		};
 		timer.schedule(task, 0, segundos);
 	}
