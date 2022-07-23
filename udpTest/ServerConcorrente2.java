@@ -9,11 +9,13 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 
@@ -26,7 +28,7 @@ public class ServerConcorrente2 {
 		// Tabela HASH com os nomes das musicas que cada host possui
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
 		
-		Map<Integer, Integer> hostList = new HashMap<Integer, Integer>();
+		ConcurrentHashMap<Integer, Integer> hostList = new ConcurrentHashMap<Integer, Integer>();
 		//List<Integer> hostList = new ArrayList<Integer>();
 		InetAddress ipClient = InetAddress.getLocalHost();
 		
@@ -88,8 +90,8 @@ public class ServerConcorrente2 {
 				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
 				
-				//Adicionando porta a lista de portas ALIVE
-				hostlist.put(port, 0);
+				//Adicionando porta a lista de portas ALIVE (int == 2 pois precisa ser diferente de 1 (alive) e 0 (not alive))
+				hostlist.put(port, 2);
 
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
@@ -124,10 +126,11 @@ public class ServerConcorrente2 {
 
 
 				System.out.println(mensagemInfo.getRequestResponsePayload());
-				String[] musicasStringList = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				//String[] musicasStringList = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				List<String> musicasStringList2 = getKeysByValues(lista_MusicaPorta, port);
 				
 				//Removendo peer do server
-				leaveServer(lista_MusicaPorta, musicasStringList, port);
+				leaveServer(lista_MusicaPorta, musicasStringList2, port);
 				hostlist.remove(port);
 				System.out.println("Hashtable:" + lista_MusicaPorta);
 				System.out.println("Portas ALIVE: " + hostlist);
@@ -204,7 +207,6 @@ public class ServerConcorrente2 {
 				}
 			} else if (mensagemInfo.getMetodo().equals("ALIVE_OK")){ 
 				//identificar o peer que enviou o alive_ok
-				InetAddress iPAddress = recPacket.getAddress();
 				int port = recPacket.getPort();
 				
 				//marcar na estrutura que ele esta vivo
@@ -257,7 +259,7 @@ public class ServerConcorrente2 {
 		
 	}
 	
-	public static void leaveServer(Map<String, List<Integer>> ht, String[] musicasSalvas, int port) {
+	public static void leaveServer(Map<String, List<Integer>> ht, List<String> musicasSalvas, int port) {
 		//System.out.println(ht.entrySet());
 		for(String musica : musicasSalvas) {
 			if (ht.get(musica).size() == 1) {
@@ -266,6 +268,7 @@ public class ServerConcorrente2 {
 				List<Integer> pList = ht.get(musica);
 				//System.out.println(pList);
 				int index = pList.indexOf(port);
+				System.out.println(index);
 				pList.remove(index);
 			}
 
@@ -317,6 +320,12 @@ public class ServerConcorrente2 {
 
 			@Override
 			public void run() {
+				
+				// Resetar lista de hosts vivos
+				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
+					peer.setValue(0);
+				}
+				
 				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
 					// Declaração e preenchimento do buffer de envio
 					byte[] sendBuffer = new byte[1024];
@@ -331,31 +340,52 @@ public class ServerConcorrente2 {
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}
-					
-					// wait/esperar pra ver se o peer ta vivo (pode ser um sleep)
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
+					}				
 					
 					System.out.println(hostList);
+				}
+				
+				// wait/esperar pra ver se o peer ta vivo (pode ser um sleep)
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				
 				// se o peer estiver marcado como ok: num faz nada, se não retira ele
 				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
 					if (peer.getValue() == 0) {
-						leaveServer(ht, null, 0);
+						System.out.println("oi");
+						System.out.println(peer.getKey());
+						List<String> musicasStringList2 = getKeysByValues(ht, peer.getKey());
+						System.out.println(musicasStringList2);
+						leaveServer(ht, musicasStringList2, peer.getKey());
+						
+						hostList.remove(peer.getKey());
 					}
 				}
+				
+				System.out.println("Testando 1.. 2... 3...");
+				
+				
 			}
 			
 			
 		};
 		timer.schedule(task, 0, segundos);
+	}
+	
+	public static List<String> getKeysByValues(Map<String, List<Integer>> map, Integer value) {
+		List<String> musicasList = new ArrayList<String>();
+		for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+			if (entry.getValue().contains(value)) {
+				musicasList.add(entry.getKey());
+				//System.out.println(entry.getKey());
+			}
+		}
+		
+		return musicasList;
 	}
 
 	

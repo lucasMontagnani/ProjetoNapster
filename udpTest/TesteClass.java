@@ -7,8 +7,14 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,21 +22,39 @@ public class TesteClass {
 	public static void main(String[] args) throws IOException {
 		System.out.println("testando...");
 		//lerArquivos();
-		
+
 		//BufferedReader inputKeyBoard = new BufferedReader(new InputStreamReader(System.in));
 		//System.out.println("Insira o caminho do diretorio onde estão os arquivos a serem compartilhados:");
 		// Leitura do teclado
 		//String texto = inputKeyBoard.readLine(); // BLOCKING
-		
+
 		//lerArquivosPeloCaminho(texto); //ok
-		
+
 		//listagemMusicas2("musicaTeste_1.jpg musicaTeste_2.jpg");
-		
+
 		//teste();
-		
-		aliveTest();
+		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
+		lista_MusicaPorta.put("musicaTeste_3.jpg", Arrays.asList(1, 2, 3));
+		lista_MusicaPorta.put("musicaTeste_4.jpg", Arrays.asList(4, 3, 5));
+
+		System.out.println(getKeysByValues(lista_MusicaPorta, 3));
+				
+		//System.out.println(Arrays.asList(4, 3, 5).contains(4));
+		//aliveTest();
 	}
-	
+
+	public static List<String> getKeysByValues(Map<String, List<Integer>> map, Integer value) {
+		List<String> musicasList = new ArrayList<String>();
+		for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+			if (entry.getValue().contains(value)) {
+				musicasList.add(entry.getKey());
+				//System.out.println(entry.getKey());
+			}
+		}
+		
+		return musicasList;
+	}
+
 	//C:\\Users\\lucas\\Downloads\\MusicasTesteTeste
 	public static void lerArquivos() {
 		File file = new File("C:\\Users\\lucas\\Downloads\\MusicasTeste");
@@ -47,7 +71,7 @@ public class TesteClass {
 		}
 		System.out.println(stringFiles);
 	}
-	
+
 	public static String lerArquivosPeloCaminho(String path) {
 		File file = new File(path);
 		String[] listFiles = file.list();
@@ -64,34 +88,34 @@ public class TesteClass {
 		System.out.println(stringFiles);
 		return stringFiles;
 	}
-	
+
 	public static String[] listagemMusicas(String musicasString) {
-        String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
-        System.out.println("The String is: " + musicasString);
-        //System.out.print("The String Array after splitting is: " + Array.toString(strArr));
-        return strArr;
+		String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
+		System.out.println("The String is: " + musicasString);
+		//System.out.print("The String Array after splitting is: " + Array.toString(strArr));
+		return strArr;
 	}
-	
+
 	public static ArrayList<String> listagemMusicas2(String musicasString) {
-        String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
-        ArrayList<String> list = new ArrayList<String>(Arrays.asList(strArr));
-        System.out.println("The String is: " + musicasString);
-        System.out.print("The ArrayList is: " + list);
-        return list;
+		String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
+		ArrayList<String> list = new ArrayList<String>(Arrays.asList(strArr));
+		System.out.println("The String is: " + musicasString);
+		System.out.print("The ArrayList is: " + list);
+		return list;
 	}
-	
+
 	public static void addMusicasToTable(String[] musicasList, Hashtable<Integer, String> ht, int port) {
 		for(String musica : musicasList) {
 			ht.put(port, musica);
 		}		
 	}
-	
+
 	public static void teste() {
 		Scanner ler = new Scanner(System.in);
 		String opcao = ler.next();	
 		System.out.println(opcao);
 	}
-	
+
 	/*
 	System.out.println(clienSocket.getLocalAddress() + " " 
 						+ clienSocket.getInetAddress() +  " "  
@@ -106,22 +130,22 @@ public class TesteClass {
 						+ clienSocket.getLocalAddress().getHostName() + " " 
 						);
 	 */
-	
+
 	public static void aliveTest() {
 		long segundos = (1000 * 5);
-		
+
 		Timer timer = new Timer();
-		
+
 		TimerTask task = new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				System.out.println("Testeee");
 			}
 		};
-		
+
 		timer.schedule(task, 0, segundos);
 	}
-	
+
 }
