@@ -45,30 +45,37 @@ public class UDPclientTeste3 {
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());		
 
 			System.out.println(informacao);
+			
+			// Desserializar Json para objeto Mensagem 
+			Mensagem mensagemInfo = DesserializerMensagemGson(informacao);			
 
-			if(informacao.equals("JOIN_OK")) {
-				System.out.println("Sou peer " + InetAddress.getLoopbackAddress().getHostAddress() + ":" + clienSocket.getLocalPort() +" com arquivos MusicasListString");
-			} else if(informacao.equals("LEAVE_OK")) {
+
+			if(mensagemInfo.getMetodo().equals("JOIN_OK")) {
+				System.out.println("Sou peer " + InetAddress.getLoopbackAddress().getHostAddress() + ":" + clienSocket.getLocalPort() +" com arquivos " + mensagemInfo.getRequestResponsePayload());
+				
+			} else if(mensagemInfo.getMetodo().equals("LEAVE_OK")) {
 				System.out.println("LEAVE_OK recebido");
 				varTest = false;
 				clienSocket.close();
-			} else if(informacao.equals("UPDATE_OK")) {
+				
+			} else if(mensagemInfo.getMetodo().equals("UPDATE_OK")) {
 				System.out.println("UPDATE_OK recebido");
-			} else if(informacao.equals("ALIVE")) {
+				
+			} else if(mensagemInfo.getMetodo().equals("ALIVE")) {
 				System.out.println("ALIVE_OK recebido");
 				try {
 					alive(iPAddress, clienSocket);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			} else {
+				
+			} else if(mensagemInfo.getMetodo().equals("SEARCH_OK")) {
 				System.out.println("SEARCH_OK recebido");
-				System.out.println("peers com arquivo solicitado:[IP:porta de cada peer da lista]");
+				System.out.println("Info: " + mensagemInfo.getRequestResponsePayload());
+				System.out.println("peers com arquivo solicitado:[127.0.0.1: " + mensagemInfo.getRequestResponsePayload() + "]");
 			}
 
 			// --RESPONSE ------------------------------------------------------------------------------------------------
-			//Trocar por wait e notify
-			//Thread.sleep(1000);
 		}
 			
 		

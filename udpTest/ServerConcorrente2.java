@@ -4,12 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +25,7 @@ public class ServerConcorrente2 {
 		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
 		
 		ConcurrentHashMap<Integer, Integer> hostList = new ConcurrentHashMap<Integer, Integer>();
-		//List<Integer> hostList = new ArrayList<Integer>();
 		InetAddress ipClient = InetAddress.getLocalHost();
-		
-		//List<List<Integer>> testAliveList = new ArrayList<List<Integer>>(); 
 		
 		aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
 		
@@ -156,6 +149,7 @@ public class ServerConcorrente2 {
 
 				// Procura e adiciona a uma lista todos os peers que possuem a musica
 				List<Integer> listaPeers = searchMusic(lista_MusicaPorta, mensagemInfo.getRequestResponsePayload());
+				System.out.println("Search teste...........");
 				System.out.println(listaPeers);
 				String peerLiString = intListToString(listaPeers);
 
