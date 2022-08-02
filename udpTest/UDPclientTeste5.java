@@ -64,7 +64,7 @@ public class UDPclientTeste5 {
 			// Obtenção da informação do datagrama 
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());		
 
-			System.out.println(informacao);
+			//System.out.println(informacao);
 			
 			// Desserializar Json para objeto Mensagem 
 			Mensagem mensagemInfo = DesserializerMensagemGson(informacao);			
@@ -262,16 +262,19 @@ public class UDPclientTeste5 {
 				if (!tcpList.isEmpty()) {
 					//ThreadTCP threadTcp = new ThreadTCP(peerList, ip, cSocket);
 					//threadTcp.start();
-					downloadTCP();
+					downloadTCP(ip, cSocket, MusicasListString);
 				}
 			}
 		} else if (opcao.equals("4")) {
 			leave(ip, cSocket, MusicasListString);
-		} else if (opcao.equals("5")) {
+		} 
+		/*
+		else if (opcao.equals("5")) {
 			update(ip, cSocket, "musicaTeste_3.jpg", MusicasListString);
 		}else {
 			
 		}
+		*/
 	}
 	
 	public static void search(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws IOException {
@@ -545,7 +548,7 @@ public class UDPclientTeste5 {
 		}
 	}
 	
-	public static void downloadTCP() throws UnknownHostException, IOException {
+	public static void downloadTCP(InetAddress ip, DatagramSocket cSocket, String MusicasListString) throws UnknownHostException, IOException {
 		
 		//byte[] bytes = new byte[1024];
 		
@@ -593,6 +596,9 @@ public class UDPclientTeste5 {
 				
 				// Fechando Socket e fileOutputStream
 				fileOutputStream.close();
+				
+				// - ENVIANDO METODO UPDATE AO SERVIDOR ------------------------------------------------------------------
+				update(ip, cSocket, fileName, MusicasListString);
 				
 			} else if (response.equals("DOWNLOAD_NEGADO")) {
 				System.out.println("Bora em outro!");
