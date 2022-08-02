@@ -27,7 +27,7 @@ public class ServerConcorrente3 {
 		ConcurrentHashMap<Integer, Integer> hostList = new ConcurrentHashMap<Integer, Integer>();
 		InetAddress ipClient = InetAddress.getLocalHost();
 		
-		aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
+		//aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
 		
 		while(true) {
 			

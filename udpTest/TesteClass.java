@@ -19,6 +19,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class TesteClass {
+	public static int valueTest = 0;
 	public static void main(String[] args) throws IOException {
 		System.out.println("testando...");
 		//lerArquivos();
@@ -33,14 +34,28 @@ public class TesteClass {
 		//listagemMusicas2("musicaTeste_1.jpg musicaTeste_2.jpg");
 
 		//teste();
-		Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
-		lista_MusicaPorta.put("musicaTeste_3.jpg", Arrays.asList(1, 2, 3));
-		lista_MusicaPorta.put("musicaTeste_4.jpg", Arrays.asList(4, 3, 5));
+		//Map<String, List<Integer>> lista_MusicaPorta = new HashMap<String, List<Integer>>();
+		//lista_MusicaPorta.put("musicaTeste_3.jpg", Arrays.asList(1, 2, 3));
+		//lista_MusicaPorta.put("musicaTeste_4.jpg", Arrays.asList(4, 3, 5));
 
-		System.out.println(getKeysByValues(lista_MusicaPorta, 3));
+		//System.out.println(getKeysByValues(lista_MusicaPorta, 3));
 				
 		//System.out.println(Arrays.asList(4, 3, 5).contains(4));
 		//aliveTest();
+		
+		BufferedReader inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
+		String opcao = inputKeyboard.readLine(); // BLOCKING
+		
+		if (opcao.equals("2")) {
+			valueTest = 2;
+			System.out.println(valueTest);
+		} else if (opcao.equals("3")) {
+			valueTest = 3;
+			System.out.println(valueTest);
+		}
+		else if (opcao.equals("1")) {
+			System.out.println(valueTest);
+		}
 	}
 
 	public static List<String> getKeysByValues(Map<String, List<Integer>> map, Integer value) {
