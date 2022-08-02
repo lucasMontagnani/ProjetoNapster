@@ -3,7 +3,10 @@ package udpTest;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
@@ -130,7 +133,7 @@ public class UDPclientTeste4 {
 			try {
 				while (true) {
 					System.out.println("Esperando...");
-
+					//- RECEBENDO MENSAGEM DE REQUISIÇÃO -----------------------------------------------------------------------------------------------
 					// Método bloqueante que cria um novo socket com o nó
 					// Socket no terá uma porta designada pelo SO entre - 1024 e 65535
 					Socket no;
@@ -145,15 +148,40 @@ public class UDPclientTeste4 {
 					String response = reader.readLine(); //BLOCKING
 					System.out.println("Response: " + response);
 
-					//------------------------------------------------------------------------------------------------
+					//- ENVIANDO MENSAGEM DE RESPOSTA-----------------------------------------------------------------------------------------------
 
 					OutputStream os = no.getOutputStream();
 					DataOutputStream writer = new DataOutputStream(os);
 
-					String texto = "DOWNLOAD_OK";
+					String texto = "DOWNLOAD_ACEITO";
 
 					// Escrita no socket (envio de informações ao host remoto)
 					writer.writeBytes(texto + "\n");
+					
+					//- ENVIANDO ARQUIVO -----------------------------------------------------------------------------------------------
+					// Capturando o arquivo pelo nome
+					//File file = new File("C:\\Users\\lucas\\Downloads\\testFile\\textTest.txt"); // txt ok
+					//File file = new File("C:\\Users\\lucas\\Downloads\\testFile\\musicaTeste_1.jpg"); //jpg ok
+			        File file = new File("C:\\Users\\lucas\\Downloads\\testFile\\TesteMusica.mp3");
+			        
+			        // Criando um buffer do tamanho do arquivo selecionado
+					byte bArray[] = new byte[(int)file.length()];
+					
+					FileInputStream fileImput = new FileInputStream(file);
+					
+					// Lendo o arquivo no Array de bytes por completo
+					fileImput.read(bArray, 0, bArray.length);
+
+					// Cria a cadeia de saida (escrita) de informações no socket; Basicamente o output de dados
+					OutputStream oStream = no.getOutputStream();
+					//DataOutputStream writer = new DataOutputStream(oStream);
+					oStream.write(bArray, 0, bArray.length);
+					
+					// para indicar que o cliente terminou de enviar os dados de confirmação TCP, caso contrario gera a excessão java.net.SocketException: Connection reset
+					no.shutdownOutput();
+					
+					// Fechando ServerSocket e FileInputStream
+					fileImput.close();
 
 				}	
 			} catch (IOException e) {
@@ -519,6 +547,32 @@ public class UDPclientTeste4 {
 			// Leitura do socket (recebimento de inforações do host remoto)
 			String response = reader.readLine(); //BLOCKING
 			System.out.println("Response: " + response);
+			
+			if(response.equals("DOWNLOAD_ACEITO")) {
+				// - BAIXANDO ARQUIVO ------------------------------------------------------------------------------------
+				System.out.println("Bora baixar!");
+				
+				byte[] bytes = new byte[1024];
+				
+				// Armazenando no arquivo no array de bytes
+				InputStream inputStream = socket.getInputStream();
+
+				FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\lucas\\Downloads\\tcpTest\\test.mp3");
+				
+				// Gravando o arquivo gigante por inteiro
+				int count;
+				while ((count = inputStream.read(bytes)) > 0) {
+					fileOutputStream.write(bytes, 0, count);
+				}
+				
+				System.out.println("Download finalzado!");
+				
+				// Fechando Socket e fileOutputStream
+				fileOutputStream.close();
+				
+			} else if (response.equals("DOWNLOAD_NEGADO")) {
+				System.out.println("Bora em outro!");
+			}
 			
 
 			socket.close();
