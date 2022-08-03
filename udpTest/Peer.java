@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-public class UDPclientTeste5 {
+public class Peer {
 	//public String MusicasListString;
 	public static boolean varTest = true;
 	public static List<Integer> peerList = new ArrayList<Integer>();
@@ -71,15 +71,15 @@ public class UDPclientTeste5 {
 				System.out.println("Sou peer " + InetAddress.getLoopbackAddress().getHostAddress() + ":" + clienSocket.getLocalPort() +" com arquivos " + mensagemInfo.getRequestResponsePayload());
 				
 			} else if(mensagemInfo.getMetodo().equals("LEAVE_OK")) {
-				System.out.println("LEAVE_OK recebido");
+				//System.out.println("LEAVE_OK recebido"); // testing
 				varTest = false;
 				clienSocket.close();
 				
 			} else if(mensagemInfo.getMetodo().equals("UPDATE_OK")) {
-				System.out.println("UPDATE_OK recebido");
+				//System.out.println("UPDATE_OK recebido"); // testing
 				
 			} else if(mensagemInfo.getMetodo().equals("ALIVE")) {
-				System.out.println("ALIVE_OK recebido");
+				//System.out.println("ALIVE_OK recebido"); // testing
 				try {
 					alive(iPAddress, clienSocket);
 				} catch (IOException e) {
@@ -87,36 +87,30 @@ public class UDPclientTeste5 {
 				}
 				
 			} else if(mensagemInfo.getMetodo().equals("SEARCH_OK")) {
-				System.out.println("SEARCH_OK recebido");
+				//System.out.println("SEARCH_OK recebido"); // testing
 				String listIp = mensagemInfo.getRequestResponsePayload();
-				System.out.println("Info: " + listIp);
+				//System.out.println("Info: " + listIp); // testing
 				System.out.println("peers com arquivo solicitado: [127.0.0.1: " + mensagemInfo.getRequestResponsePayload() + "]");
 				
-				//List<Integer> peerListUDP = new ArrayList<Integer>();
 				peerList = listagemPeers(listIp);
 				
-				//ThreadTCP thread = new ThreadTCP(peerList);
 				
 			} else if(mensagemInfo.getMetodo().equals("TCP_PORT")) {
 				// Procurar e devolver porta tcp
 				int tcpPort =  serverSocket.getLocalPort();
 				int udpPort = recPacket.getPort();
-				System.out.println("tcpPort: " + tcpPort + " - " + "udpPort : " + udpPort);
+				//System.out.println("tcpPort: " + tcpPort + " - " + "udpPort : " + udpPort); // testing
 				tcpResponse(iPAddress, clienSocket, tcpPort, udpPort);
-				//System.out.println("Conectado ao servidor na porta: " + serverSocket.getLocalPort());
+				
 			} else if(mensagemInfo.getMetodo().equals("TCP_PORT_OK")) {
 				// Lista de portas TCP enviadas pelos peers ativos
 				tcpList.add(Integer.parseInt(mensagemInfo.getRequestResponsePayload()));
-				System.out.println("Bateeeeuuuu!");
+				//System.out.println("Bateeeeuuuu!"); // testing
 			}
 			
 
 			// --RESPONSE ------------------------------------------------------------------------------------------------
 		}
-			
-		
-		// Fechamento da conexão
-		//clienSocket.close();
 		
 	}
 		
@@ -132,7 +126,7 @@ public class UDPclientTeste5 {
 		public void run() {
 			try {
 				while (true) {
-					System.out.println("Esperando...");
+					//System.out.println("Esperando..."); // testing
 					//- RECEBENDO MENSAGEM DE REQUISIÇÃO -----------------------------------------------------------------------------------------------
 					// Método bloqueante que cria um novo socket com o nó
 					// Socket no terá uma porta designada pelo SO entre - 1024 e 65535
@@ -146,14 +140,14 @@ public class UDPclientTeste5 {
 
 					// Leitura do socket (recebimento de inforações do host remoto)
 					String response = reader.readLine(); //BLOCKING
-					System.out.println("Response: " + response);
+					//System.out.println("Response: " + response); // testing
 					
 					// Verificanso se possui o arquivo requisitado
 					Boolean fileCheck = fileExists(response);
 					
 					//Aceitando ou negando a requisição de forma aleatória
 					Boolean resposta = Math.random() < 0.5;
-					System.out.println(resposta);
+					//System.out.println(resposta); // testing
 					
 					if(fileCheck && resposta) {
 						//- ENVIANDO MENSAGEM DE RESPOSTA-----------------------------------------------------------------------------------------------
@@ -258,7 +252,7 @@ public class UDPclientTeste5 {
 		} else if (opcao.equals("3")) {
 			// Fazer tratamentos
 			if (peerList.isEmpty()) {
-				System.out.println("Não há peers na lista de downloads. Faça uma busca pelo SEARCH para poder reqalizar o DOWNLOAD.");
+				//System.out.println("Não há peers na lista de downloads. Faça uma busca pelo SEARCH para poder reqalizar o DOWNLOAD."); // testing
 			} else {
 				portRequest(ip, cSocket); // Portas tcp salvas em tcpList
 				if (!tcpList.isEmpty()) {
@@ -431,9 +425,9 @@ public class UDPclientTeste5 {
 	public static void update(InetAddress ip, DatagramSocket cSocket, String musicaBaixada, String MusicasListString) throws IOException {
 		// -- UPDATE - REQUEST ------------------------------------------------------------------------------------------------		
 		//Atualizar atributo MusicaListString com a nova musica
-		System.out.println(MusicasListString);
+		// System.out.println(MusicasListString); // testing
 		MusicasListString = MusicasListString + " "+musicaBaixada;
-		System.out.println(MusicasListString);
+		//System.out.println(MusicasListString); // testing
 		
 		// Serializar objeto Mensagem para Json
 		String jsonData = serializerMensagemGson("UPDATE", musicaBaixada);	
@@ -574,11 +568,11 @@ public class UDPclientTeste5 {
 			
 			// Leitura do socket (recebimento de inforações do host remoto)
 			String response = reader.readLine(); //BLOCKING
-			System.out.println("Response: " + response);
+			//System.out.println("Response: " + response); // testing
 			
 			if(response.equals("DOWNLOAD_ACEITO")) {
 				// - BAIXANDO ARQUIVO ------------------------------------------------------------------------------------
-				System.out.println("Bora baixar!");
+				//System.out.println("Bora baixar!"); // testing
 				
 				byte[] bytes = new byte[1024];
 				
@@ -667,7 +661,7 @@ public class UDPclientTeste5 {
 		// Cria um Buffer que lê informações do teclado
 		BufferedReader inputKeyBoard = new BufferedReader(new InputStreamReader(System.in));
 						
-		System.out.println("Insira o caminho do diretorio onde estão os arquivos a serem compartilhados:");
+		//System.out.println("Insira o caminho do diretorio onde estão os arquivos a serem compartilhados:"); // testing
 		// Leitura do teclado
 		String texto = inputKeyBoard.readLine(); // BLOCKING
 		
@@ -693,7 +687,7 @@ public class UDPclientTeste5 {
 	
 	public static List<Integer> listagemPeers(String peersString) {
         String[] strArr = peersString.split("\\s+");//Splitting using whitespace
-        System.out.println("The String is: " + peersString);
+        //System.out.println("The String is: " + peersString); // testing
         
         List<Integer> peerList = new ArrayList<>();
         

@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 
-public class ServerConcorrente3 {
+public class Server {
 	
 	public static void main(String[] args) throws IOException {
 		// Criar o mecanismo para escutar e atender conexôes pela porta 10098
@@ -27,7 +27,7 @@ public class ServerConcorrente3 {
 		ConcurrentHashMap<Integer, Integer> hostList = new ConcurrentHashMap<Integer, Integer>();
 		InetAddress ipClient = InetAddress.getLocalHost();
 		
-		//aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
+		aliveTest(hostList, ipClient, serverSocket, lista_MusicaPorta);
 		
 		while(true) {
 			
@@ -37,7 +37,7 @@ public class ServerConcorrente3 {
 			// Ciração do datagrama a ser recebido
 			DatagramPacket recPacket = new DatagramPacket(recBuffer, recBuffer.length);
 			
-			System.out.println("Esperando alguma mensagem...");
+			//System.out.println("Esperando alguma mensagem..."); // testing
 			
 			// Recebimento do datagrama do host remoto (método bloquante)
 			serverSocket.receive(recPacket); //BLOCKING ----------------------------------------------------------------
@@ -68,6 +68,10 @@ public class ServerConcorrente3 {
 		public void run() {
 			// Obtenção da informação vinda no datagrama
 			String informacao = new String(recPacket.getData(), recPacket.getOffset(), recPacket.getLength());
+			
+			// Enderço IP e porta do Cliente (só usando para devolver algo)
+			InetAddress iPAddress = recPacket.getAddress();
+			int port = recPacket.getPort();
 
 			// Desserializar Json para objeto Mensagem 
 			Mensagem mensagemInfo = DesserializerMensagemGson(informacao);			
@@ -77,22 +81,17 @@ public class ServerConcorrente3 {
 
 				// Pegando os dados vindo da string e adicionando numa lista
 				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
-				System.out.println("Numero de musicas: " + musicasLiStrings.length);		
-
-				// Enderço IP e porta do Cliente (só usando para devolver algo)
-				InetAddress iPAddress = recPacket.getAddress();
-				int port = recPacket.getPort();
+				//System.out.println("Numero de musicas: " + musicasLiStrings.length);	// testing
 				
 				//Adicionando porta a lista de portas ALIVE (int == 2 pois precisa ser diferente de 1 (alive) e 0 (not alive))
 				hostlist.put(port, 2);
 
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
-				System.out.println("Hashtable:" + lista_MusicaPorta);
-				System.out.println("Postas ALIVE: " + hostlist);
-				System.out.println("ip:" + iPAddress);
+				//System.out.println("Hashtable:" + lista_MusicaPorta); // testing
+				//System.out.println("Postas ALIVE: " + hostlist); // testing
 				
-				System.out.println("Peer " + iPAddress + ":" + port + " adicionado com arquivos " + musicasLiStrings);
+				System.out.println("Peer " + iPAddress + ":" + port + " adicionado com arquivos " + mensagemInfo.getRequestResponsePayload());
 
 				// Serializar objeto Mensagem para Json (Payload: Musicas confirmadas pelo peer)
 				String jsonData = serializerMensagemGson("JOIN_OK", mensagemInfo.getRequestResponsePayload());	
@@ -112,25 +111,20 @@ public class ServerConcorrente3 {
 					e.printStackTrace();
 				}
 
-				System.out.println("Mensagem enviada pelo server");
+				//System.out.println("Mensagem enviada pelo server"); // testing
 
 			} else if (mensagemInfo.getMetodo().equals("LEAVE")){
 
-				System.out.println("saindo...");
-				// Enderço IP e porta do Cliente (só usando para devolver algo)
-				InetAddress iPAddress = recPacket.getAddress();
-				int port = recPacket.getPort();
-
-
-				System.out.println(mensagemInfo.getRequestResponsePayload());
-				//String[] musicasStringList = listagemMusicas(mensagemInfo.getRequestResponsePayload());
+				//System.out.println("saindo..."); // testing
+				
+				//System.out.println(mensagemInfo.getRequestResponsePayload()); // testing
 				List<String> musicasStringList2 = getKeysByValues(lista_MusicaPorta, port);
 				
 				//Removendo peer do server
 				leaveServer(lista_MusicaPorta, musicasStringList2, port);
 				hostlist.remove(port);
-				System.out.println("Hashtable:" + lista_MusicaPorta);
-				System.out.println("Portas ALIVE: " + hostlist);
+				//System.out.println("Hashtable:" + lista_MusicaPorta); // testing
+				//System.out.println("Portas ALIVE: " + hostlist); // testing
 				
 				// Serializar objeto Mensagem para Json
 				String jsonData = serializerMensagemGson("LEAVE_OK", null);	
@@ -150,19 +144,18 @@ public class ServerConcorrente3 {
 					e.printStackTrace();
 				}
 
-				System.out.println("Mensagem enviada pelo server");
+				//System.out.println("Mensagem enviada pelo server"); // testing
 
 			} else if (mensagemInfo.getMetodo().equals("SEARCH")){
+				
+				System.out.println("Peer " + iPAddress + ":" + port + " solicitou arquivo" + mensagemInfo.getRequestResponsePayload());
 
 				// Procura e adiciona a uma lista todos os peers que possuem a musica
 				List<Integer> listaPeers = searchMusic(lista_MusicaPorta, mensagemInfo.getRequestResponsePayload());
-				System.out.println("Search teste...........");
-				System.out.println(listaPeers);
+				
+				//System.out.println("Search teste..........."); // testing
+				//System.out.println(listaPeers); // testing
 				String peerLiString = intListToString(listaPeers);
-
-				// Enderço IP e porta do Cliente (só usando para devolver algo)
-				InetAddress iPAddress = recPacket.getAddress();
-				int port = recPacket.getPort();
 				
 				// Serializar objeto Mensagem para Json
 				String jsonData = serializerMensagemGson("SEARCH_OK", peerLiString);	
@@ -185,15 +178,11 @@ public class ServerConcorrente3 {
 
 				// Pegando os dados vindo da string e adicionando numa lista
 				String[] musicasLiStrings = listagemMusicas(mensagemInfo.getRequestResponsePayload());
-				System.out.println("Numero de musicas: " + musicasLiStrings.length);	
-
-				// Enderço IP e porta do Cliente (só usando para devolver algo)
-				InetAddress iPAddress = recPacket.getAddress();
-				int port = recPacket.getPort();
+				//System.out.println("Numero de musicas: " + musicasLiStrings.length); // testing
 
 				// Adicionando as musicas do host na hasktable <MUSICA, PORTAS>
 				addMusicasToTable(musicasLiStrings, lista_MusicaPorta, port);
-				System.out.println("Hashtable:" + lista_MusicaPorta);
+				//System.out.println("Hashtable:" + lista_MusicaPorta); // testing
 				
 				// Serializar objeto Mensagem para Json
 				String jsonData = serializerMensagemGson("UPDATE_OK", null);	
@@ -212,15 +201,11 @@ public class ServerConcorrente3 {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			} else if (mensagemInfo.getMetodo().equals("ALIVE_OK")){ 
-				//identificar o peer que enviou o alive_ok
-				int port = recPacket.getPort();
-				
+			} else if (mensagemInfo.getMetodo().equals("ALIVE_OK")){ 				
 				//marcar na estrutura que ele esta vivo
 				hostlist.put(port, 1);
-				System.out.println(hostlist);
-				System.out.println("bateu");
-				//notificar o alive test
+				//System.out.println(hostlist); // testing
+				//System.out.println("bateu"); // testing
 				
 			}
 
@@ -230,7 +215,8 @@ public class ServerConcorrente3 {
 	
 	public static String[] listagemMusicas(String musicasString) {
         String[] strArr = musicasString.split("\\s+");//Splitting using whitespace
-        System.out.println("The String is: " + musicasString);
+        
+        //System.out.println("The String is: " + musicasString); // testing
         //System.out.print("The String Array after splitting is: " + Array.toString(strArr));
         return strArr;
 	}
@@ -267,15 +253,13 @@ public class ServerConcorrente3 {
 	}
 	
 	public static void leaveServer(Map<String, List<Integer>> ht, List<String> musicasSalvas, int port) {
-		//System.out.println(ht.entrySet());
 		for(String musica : musicasSalvas) {
 			if (ht.get(musica).size() == 1) {
 				ht.remove(musica);
 			} else {
 				List<Integer> pList = ht.get(musica);
-				//System.out.println(pList);
 				int index = pList.indexOf(port);
-				System.out.println(index);
+				//System.out.println(index);  // testing
 				pList.remove(index);
 			}
 
@@ -348,35 +332,34 @@ public class ServerConcorrente3 {
 					try {
 						serverSocket.send(sendPacket);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}				
 					
-					System.out.println(hostList);
+					//System.out.println(hostList); // testing
 				}
 				
 				// wait/esperar pra ver se o peer ta vivo (pode ser um sleep)
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
 				// se o peer estiver marcado como ok: num faz nada, se não retira ele
 				for (Map.Entry<Integer, Integer> peer : hostList.entrySet()) {
 					if (peer.getValue() == 0) {
-						System.out.println("oi");
-						System.out.println(peer.getKey());
+						//System.out.println(peer.getKey()); // testing
 						List<String> musicasStringList2 = getKeysByValues(ht, peer.getKey());
-						System.out.println(musicasStringList2);
+						//System.out.println(musicasStringList2); // testing
 						leaveServer(ht, musicasStringList2, peer.getKey());
 						
 						hostList.remove(peer.getKey());
+						
+						System.out.println("Peer 127.0.0.1:" + peer +" morto. Eliminando seus arquivos " + musicasStringList2.toString());
 					}
 				}
 				
-				System.out.println("Testando 1.. 2... 3...");
+				//System.out.println("Testando 1.. 2... 3..."); // testing
 				
 				
 			}
